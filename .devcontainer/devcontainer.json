@@ -1,0 +1,31 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vscode/main/extensions/configuration-editing/schemas/devContainer.vscode.schema.json",
+  "name": "portainer-stack",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "portainer-stack-bastion",
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        "editor.detectIndentation": false,
+        "ansible.validation.lint.enabled": false
+      },
+      "github.copilot.advanced": {
+        "excludeFiles": [
+          "**/*.env",
+          "**/*.pem"
+        ]
+      },
+      "extensions": [
+        "MS-CEINTL.vscode-language-pack-ja",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "streetsidesoftware.code-spell-checker",
+        "redhat.ansible"
+      ]
+    }
+  }
+}

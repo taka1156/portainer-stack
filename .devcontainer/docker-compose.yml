@@ -1,0 +1,8 @@
+services:
+  portainer-stack-bastion:
+    build: .
+    volumes:
+      - ../.key:/root/.ssh
+      - ../:/workspace
+    stdin_open: true
+    tty: true

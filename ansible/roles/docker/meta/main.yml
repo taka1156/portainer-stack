@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: docker
+  author: taka1156
+  description: Install Docker CE and Docker Compose plugin on Debian/Ubuntu
+  license: MIT
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all

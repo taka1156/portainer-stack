@@ -1,0 +1,70 @@
+---
+# =============================================================================
+# Ansible Playbook: Setup portainer-stack
+# Installs Docker CE + Portainer CE, and optionally cloudflared (Cloudflare Tunnel)
+# Target OS: Debian/Ubuntu
+# Usage:
+#   make setup-ansible
+#   make setup-ansible ARGS="--check --diff"              # dry-run
+#   make setup-ansible ARGS="-e enable_cloudflare_tunnel=true"  # with tunnel
+# =============================================================================
+
+- name: Setup portainer-stack (Docker + Portainer)
+  hosts: servers
+  become: true
+
+  vars:
+    enable_cloudflare_tunnel: false
+
+  pre_tasks:
+    - name: Check OS family
+      assert:
+        that: ansible_facts.os_family == "Debian"
+        fail_msg: "This playbook is intended for Debian/Ubuntu only (current: {{ ansible_facts.os_family }})"
+
+    - name: Check Tunnel Token (when enable_cloudflare_tunnel=true)
+      assert:
+        that: cf_tunnel_token | length > 0
+        fail_msg: >-
+          cf_tunnel_token is not set.
+          Set CF_TUNNEL_TOKEN in .env or pass --extra-vars "cf_tunnel_token=YOUR_TOKEN".
+      when: enable_cloudflare_tunnel | bool
+
+  roles:
+    - docker
+    - portainer
+
+  tasks:
+    - name: Setup cloudflared (Cloudflare Tunnel)
+      include_role:
+        name: cloudflared
+      when: enable_cloudflare_tunnel | bool
+
+  post_tasks:
+    - name: Get Portainer container status
+      command: docker inspect --format="{{ '{{' }}.State.Status{{ '}}' }}" portainer
+      register: portainer_info
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Get cloudflared status
+      command: systemctl is-active cloudflared
+      register: cf_info
+      changed_when: false
+      failed_when: false
+      check_mode: false
+      when: enable_cloudflare_tunnel | bool
+
+    - name: Summary
+      debug:
+        msg: >-
+          ========================================
+          ✅  Docker      : {{ ansible_facts.packages['docker-ce'][0].version | default('installed') }}
+          ✅  Portainer   : {{ portainer_info.stdout | default('unknown') }}
+          {% if enable_cloudflare_tunnel | bool %}
+          ✅  cloudflared : {{ cf_info.stdout | default('unknown') }}
+          {% else %}
+          ⏭️  cloudflared : skipped (enable_cloudflare_tunnel=false)
+          {% endif %}
+          ======================================== Access Portainer at https://{{ ansible_host }}:9443
